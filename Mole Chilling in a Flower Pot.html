@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mole in a Flower Pot</title>
+<style>
+:root{--bg:#ece9e2;--ink:#2b2622;--muted:#6f675f;--card:#f7f5f0;--line:#cfc9bf;--accent:#e8922c;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#26211d;--ink:#f1ebe2;--muted:#a89f94;--card:#332d28;--line:#4a423b;color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Patrick Hand","Comic Sans MS","Segoe Print",cursive,sans-serif;min-height:100vh;display:flex;justify-content:center}
+main{width:100%;max-width:560px;padding:20px 16px 32px;text-align:center}
+h1{font-size:1.9rem;letter-spacing:.06em;margin:4px 0 0;font-weight:400}
+.sub{color:var(--muted);margin:2px 0 14px}
+.score{font-size:2.4rem;line-height:1}
+.rate{color:var(--muted);font-size:1.05rem;margin-top:2px}
+.stage{position:relative;margin:10px auto 8px;width:min(320px,86vw);height:min(320px,86vw);display:flex;align-items:center;justify-content:center}
+.stage button{all:unset;cursor:pointer;display:block;width:100%;height:100%;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.stage button:focus-visible{outline:3px dashed var(--accent);outline-offset:4px;border-radius:24px}
+svg{width:100%;height:100%;overflow:visible}
+.bob{transform-origin:160px 250px;transition:transform .12s}
+.pop .bob{transform:scale(1.07,.9) translateY(-6px)}
+.pop .face{transform:translateY(-8px)}
+.face{transition:transform .12s}
+.eyes{transform-box:fill-box;transform-origin:center}
+.blink{animation:blink 4s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+@media (prefers-reduced-motion:reduce){.blink{animation:none}.bob,.face{transition:none}}
+.float{position:absolute;pointer-events:none;font-size:1.5rem;animation:up .9s ease-out forwards}
+@keyframes up{to{transform:translateY(-70px);opacity:0}}
+.toggle{display:inline-flex;border:2px solid var(--ink);border-radius:999px;overflow:hidden;margin:6px 0 16px}
+.toggle button{font:inherit;color:var(--ink);background:none;border:0;padding:4px 16px;cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.toggle button:focus-visible{outline:3px dashed var(--accent);outline-offset:-3px}
+.shop{display:grid;gap:10px;text-align:left}
+.up{font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px;display:flex;justify-content:space-between;gap:12px;align-items:center;cursor:pointer;width:100%}
+.up:disabled{opacity:.5;cursor:not-allowed}
+.up:not(:disabled):hover{border-color:var(--accent)}
+.up:focus-visible{outline:3px dashed var(--accent);outline-offset:2px}
+.up b{font-weight:400;font-size:1.2rem;display:block}
+.up small{color:var(--muted);font-size:.95rem}
+.cost{white-space:nowrap;font-size:1.15rem}
+.own{color:var(--muted);font-size:.95rem;display:block;text-align:right}
+.note{color:var(--muted);font-size:.9rem;margin-top:18px}
+</style>
+</head>
+<body>
+<main>
+ <h1>MOLE CHILLING</h1>
+ <p class="sub">in a flower pot</p>
+ <div class="score" id="score">0</div>
+ <div class="rate" id="rate">worms eaten</div>
+
+ <div class="stage" id="stage">
+  <button id="mole" aria-label="Pet the mole"></button>
+ </div>
+
+ <div class="toggle" role="group" aria-label="Camera view">
+  <button id="vSide" aria-pressed="true">Side view</button>
+  <button id="vTop" aria-pressed="false">Top view</button>
+ </div>
+
+ <div class="shop" id="shop"></div>
+ <p class="note">Tap the mole to feed it. Inspired by “The Little Mole.”</p>
+</main>
+
+<script>
+const SIDE = `
+<svg viewBox="0 0 320 320" aria-hidden="true">
+ <ellipse cx="160" cy="300" rx="92" ry="10" fill="#000" opacity=".12"/>
+ <g class="bob">
+  <!-- mole body -->
+  <path d="M82 190 C82 105 116 52 160 52 C204 52 238 105 238 190 Z" fill="#e8922c"/>
+  <path d="M96 170 C96 112 120 70 150 62 C124 80 112 120 112 170 Z" fill="#f3b05b" opacity=".6"/>
+  <g class="face">
+   <!-- stripes -->
+   <g stroke="#2b2622" stroke-width="3.5" stroke-linecap="round" fill="none">
+    <path d="M92 138 l22 6"/><path d="M90 156 l24 4"/><path d="M94 172 l20 2"/>
+    <path d="M228 138 l-22 6"/><path d="M230 156 l-24 4"/><path d="M226 172 l-20 2"/>
+    <path d="M150 62 v14"/><path d="M170 62 v14"/>
+   </g>
+   <!-- eyes -->
+   <g class="eyes blink" fill="#2b2622"><circle cx="128" cy="122" r="5"/><circle cx="192" cy="122" r="5"/></g>
+   <!-- muzzle -->
+   <ellipse cx="160" cy="148" rx="26" ry="24" fill="#fff"/>
+   <ellipse cx="160" cy="130" rx="7" ry="5" fill="#2b2622"/>
+   <ellipse cx="160" cy="158" rx="9" ry="10" fill="#2b2622" opacity=".9"/>
+  </g>
+ </g>
+ <!-- pot back rim shadow & pot -->
+ <path d="M62 188 h196 v34 H62 Z" fill="#8a5a3a"/>
+ <path d="M62 188 h196 v10 H62 Z" fill="#a06c46"/>
+ <path d="M76 222 h168 l-14 78 H90 Z" fill="#7a4d2f"/>
+ <g stroke="#5f3a22" stroke-width="2" opacity=".5"><path d="M100 230 l-8 60"/><path d="M130 230 l-4 60"/><path d="M160 230 v60"/><path d="M190 230 l4 60"/><path d="M220 230 l8 60"/></g>
+ <!-- paws on rim -->
+ <g fill="#e8922c" stroke="#2b2622" stroke-width="2.5">
+  <ellipse cx="116" cy="190" rx="19" ry="11"/><ellipse cx="204" cy="190" rx="19" ry="11"/>
+ </g>
+ <g stroke="#2b2622" stroke-width="2.5" stroke-linecap="round"><path d="M108 184 v8"/><path d="M116 182 v9"/><path d="M124 184 v8"/><path d="M196 184 v8"/><path d="M204 182 v9"/><path d="M212 184 v8"/></g>
+</svg>`;
+
+const TOP = `
+<svg viewBox="0 0 320 320" aria-hidden="true">
+ <circle cx="160" cy="160" r="142" fill="#a06c46"/>
+ <circle cx="160" cy="160" r="126" fill="#5f3a22"/>
+ <g class="bob" style="transform-origin:160px 160px">
+  <circle cx="160" cy="158" r="104" fill="#e8922c"/>
+  <circle cx="132" cy="128" r="66" fill="#f3b05b" opacity=".55"/>
+  <g fill="#2b2622"><ellipse cx="160" cy="246" rx="11" ry="9"/></g>
+  <g fill="#e8922c" stroke="#2b2622" stroke-width="2.5"><ellipse cx="84" cy="232" rx="17" ry="10"/><ellipse cx="236" cy="232" rx="17" ry="10"/></g>
+  <g stroke="#2b2622" stroke-width="2.5" stroke-linecap="round"><path d="M76 228 v8"/><path d="M84 226 v9"/><path d="M92 228 v8"/><path d="M228 228 v8"/><path d="M236 226 v9"/><path d="M244 228 v8"/></g>
+ </g>
+</svg>`;
+
+const UPS=[
+ {id:'soil',name:'Cozy soil',desc:'+1 worm per tap',base:10,grow:1.6,click:1},
+ {id:'friend',name:'Mole friend',desc:'+1 worm every second',base:30,grow:1.35,auto:1},
+ {id:'lamp',name:'Little lamp',desc:'+5 worms every second',base:250,grow:1.4,auto:5},
+ {id:'show',name:'TV show night',desc:'+3 worms per tap',base:600,grow:1.7,click:3},
+];
+let S={score:0,own:{},view:'side'};
+try{const s=JSON.parse(localStorage.getItem('mole')||'null');if(s)S=Object.assign(S,s)}catch(e){}
+
+const $=id=>document.getElementById(id), stage=$('stage'), mole=$('mole');
+const cost=u=>Math.ceil(u.base*Math.pow(u.grow,S.own[u.id]||0));
+const perClick=()=>1+UPS.reduce((a,u)=>a+(u.click||0)*(S.own[u.id]||0),0);
+const perSec=()=>UPS.reduce((a,u)=>a+(u.auto||0)*(S.own[u.id]||0),0);
+const fmt=n=>n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e4?(n/1e3).toFixed(1)+'k':Math.floor(n).toString();
+
+function save(){try{localStorage.setItem('mole',JSON.stringify(S))}catch(e){}}
+function drawView(){
+ mole.innerHTML=S.view==='side'?SIDE:TOP;
+ $('vSide').setAttribute('aria-pressed',S.view==='side');
+ $('vTop').setAttribute('aria-pressed',S.view==='top');
+}
+function renderShop(){
+ const box=$('shop');
+ if(!box.children.length){
+  UPS.forEach(u=>{
+   const b=document.createElement('button');b.className='up';b.id='up-'+u.id;
+   b.innerHTML='<span><b>'+u.name+'</b><small>'+u.desc+'</small></span><span><span class="cost"></span><span class="own"></span></span>';
+   b.onclick=()=>{const c=cost(u);if(S.score>=c){S.score-=c;S.own[u.id]=(S.own[u.id]||0)+1;save();update()}};
+   box.appendChild(b);
+  });
+ }
+ UPS.forEach(u=>{
+  const b=$('up-'+u.id),c=cost(u);
+  b.disabled=S.score<c;
+  b.querySelector('.cost').textContent=fmt(c)+' worms';
+  b.querySelector('.own').textContent='owned: '+(S.own[u.id]||0);
+ });
+}
+function update(){
+ $('score').textContent=fmt(S.score);
+ $('rate').textContent='worms eaten · '+fmt(perSec())+'/s';
+ renderShop();
+}
+mole.addEventListener('click',e=>{
+ const n=perClick();S.score+=n;update();
+ stage.classList.add('pop');setTimeout(()=>stage.classList.remove('pop'),120);
+ const f=document.createElement('div');f.className='float';f.textContent='+'+n;
+ const r=stage.getBoundingClientRect();
+ const x=e.clientX?e.clientX-r.left:r.width/2, y=e.clientY?e.clientY-r.top:r.height/2;
+ f.style.left=(x-10)+'px';f.style.top=(y-20)+'px';
+ stage.appendChild(f);setTimeout(()=>f.remove(),900);
+});
+$('vSide').onclick=()=>{S.view='side';drawView();save()};
+$('vTop').onclick=()=>{S.view='top';drawView();save()};
+setInterval(()=>{const p=perSec();if(p){S.score+=p/10;$('score').textContent=fmt(S.score);}},100);
+setInterval(()=>{renderShop();save()},1000);
+drawView();update();
+</script>
+</body>
+</html>
